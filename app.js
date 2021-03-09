@@ -13,9 +13,15 @@ const port = 3000;
 app.use(express.json()); // req.body
 
 // get all voter
+
+// () => {
+//
+
+// }
+
 app.get("/voter", async (req, res) => {
   try {
-    const allVoter = await pool.query("SELECT * FROM blockvoter");
+    const allVoter = await pool.query("SELECT * FROM blockvoter;");
 
     res.json(allVoter.rows);
   } catch (err) {
@@ -43,24 +49,44 @@ app.post("/voter", async (req, res) => {
     );
 
     // get prev hash
-
     // Insert Genesis Block
-    const genesis = await pool.query("SELECT * FROM blockvoter");
+    const genesis = await pool.query("SELECT * FROM blockvoter;");
     if (genesis.rows == 0) {
-      res.json(genesis.rows);
+      let genesisBlock = new Block(
+        0,
+        "genesis",
+        "email@Genesis.com",
+        0,
+        "genAdmin",
+        "iniceritanyahashpanjanggitu"
+      );
+      const genesisInsert = await pool.query(
+        "INSERT INTO blockvoter (index,name,email,admin_name,polling_booth,previous_hash) VALUES ($1,$2,$3,$4,$5,$6) RETURNING *;",
+        // [genesisBlock.calculateProperty(genesisBlock.index),genesisBlock.calculateProperty(genesisBlock.name), genesisBlock.calculateProperty(genesisBlock.email),genesisBlock.calculateProperty(genesisBlock.polling_booth),
+        //   genesisBlock.calculateProperty(genesisBlock.admin_name),genesisBlock.calculateProperty(genesisBlock.previous_hash)]
+        [
+          genesisBlock.index,
+          genesisBlock.name,
+          genesisBlock.email,
+          genesisBlock.polling_booth,
+          genesisBlock.admin_name,
+          genesisBlock.previous_hash,
+        ]
+      );
+      res.json(genesisInsert.rows[0]);
     }
-
     // create new hash
     const newVoter = await pool.query(
-      "INSERT INTO blockvoter (index,name,email,admin_name,polling_booth,previous_hash) VALUES ($1,$2,$3,$4,$5,$6) RETURNING *",
-      // [index, name, email, admin_name, polling_booth,previous_hash]
+      "INSERT INTO blockvoter (index,name,email,admin_name,polling_booth,previous_hash) VALUES ($1,$2,$3,$4,$5,$6) RETURNING *;",
+      // [Voter.calculateProperty(Voter.index),Voter.calculateProperty(Voter.name), Voter.calculateProperty(Voter.email),Voter.calculateProperty(Voter.polling_booth),
+      //   Voter.calculateProperty(Voter.admin_name),Voter.calculateProperty(Voter.previous_hash)]
       [
-        Voter.calculateProperty(Voter.index),
-        Voter.calculateProperty(Voter.name),
-        Voter.calculateProperty(Voter.email),
-        Voter.calculateProperty(Voter.polling_booth),
-        Voter.calculateProperty(Voter.admin_name),
-        Voter.calculateProperty(Voter.previous_hash),
+        Voter.index,
+        Voter.name,
+        Voter.email,
+        Voter.polling_booth,
+        Voter.admin_name,
+        Voter.previous_hash,
       ]
     );
 
