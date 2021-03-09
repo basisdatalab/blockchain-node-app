@@ -1,4 +1,4 @@
-const Block = require('./blockchain.js');
+const Block = require("./blockchain.js");
 const express = require("express");
 const app = express();
 const pool = require("./db");
@@ -7,7 +7,6 @@ const pool = require("./db");
 const { ClientBase } = require("pg");
 // var router = require("./app/route/route");
 const port = 3000;
-
 
 // app.use("/api/v1/node", router);
 
@@ -27,7 +26,6 @@ app.get("/voter", async (req, res) => {
 //create a voter
 app.post("/voter", async (req, res) => {
   try {
-    
     const { index } = req.body;
     const { name } = req.body;
     const { email } = req.body;
@@ -35,25 +33,39 @@ app.post("/voter", async (req, res) => {
     const { admin_name } = req.body;
     const { previous_hash } = req.body;
 
-    let Voter = new Block(index,name,email,polling_booth,admin_name,previous_hash);
-  
-    
+    let Voter = new Block(
+      index,
+      name,
+      email,
+      polling_booth,
+      admin_name,
+      previous_hash
+    );
 
     // get prev hash
 
+    // Insert Genesis Block
+    const genesis = await pool.query("SELECT * FROM blockvoter");
+    if (genesis.rows == 0) {
+      res.json(genesis.rows);
+    }
+
     // create new hash
-    console.log("pasti jalan");
-      const newVoter = await pool.query(
+    const newVoter = await pool.query(
       "INSERT INTO blockvoter (index,name,email,admin_name,polling_booth,previous_hash) VALUES ($1,$2,$3,$4,$5,$6) RETURNING *",
       // [index, name, email, admin_name, polling_booth,previous_hash]
-      [Voter.calculateProperty(Voter.index),Voter.calculateProperty(Voter.name), Voter.calculateProperty(Voter.email),Voter.calculateProperty(Voter.polling_booth),
-        Voter.calculateProperty(Voter.admin_name),Voter.calculateProperty(Voter.previous_hash)]
-      
+      [
+        Voter.calculateProperty(Voter.index),
+        Voter.calculateProperty(Voter.name),
+        Voter.calculateProperty(Voter.email),
+        Voter.calculateProperty(Voter.polling_booth),
+        Voter.calculateProperty(Voter.admin_name),
+        Voter.calculateProperty(Voter.previous_hash),
+      ]
     );
 
     res.json(newVoter.rows[0]);
     console.log("Data Berhasil di input ke database");
-    
   } catch (err) {
     console.error(err.message);
   }
