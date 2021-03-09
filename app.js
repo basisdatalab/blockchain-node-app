@@ -59,8 +59,6 @@ app.post("/voter", async (req, res) => {
   }
 });
 
-
 app.listen(port, () => {
   console.log(`Node app is live at port ${port}`);
 });
-
