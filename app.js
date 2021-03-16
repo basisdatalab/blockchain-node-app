@@ -1,4 +1,4 @@
-const Block = require("./blockchain.js");
+const { Blockvoter, BlockDatavoter } = require("./blockchain");
 const express = require("express");
 const app = express();
 const pool = require("./db");
@@ -27,10 +27,11 @@ app.get("/voter", async (req, res) => {
 app.post("/voter", async (req, res) => {
   try {
     // INSERT GENESIS BLOCK
-    const genesis = await pool.query("SELECT * FROM blockvoter;");
+    const genesisblockvoter = await pool.query("SELECT * FROM blockvoter;");
+    const genesisDatavoter = await pool.query("SELECT * FROM datavoter");
 
-    if (genesis.rows == 0) {
-      let genesisBlock = new Block(
+    if (genesisblockvoter.rows == 0) {
+      let genesisBlockvoter = new Blockvoter(
         "Genesis Block",
         "Genesis Block",
         "Genesis Block",
@@ -41,19 +42,45 @@ app.post("/voter", async (req, res) => {
         "Genesis Block"
       );
 
-      const genesisInsert = await pool.query(
+      console.log(genesisBlockvoter);
+
+      const genesisInsertBlockvoter = await pool.query(
         "INSERT INTO blockvoter (index,name,email,polling_booth,admin_name,timestamp,hash,previous_hash) VALUES ($1,$2,$3,$4,$5,$6,$7,$8) RETURNING *;",
         // [genesisBlock.calculateProperty(genesisBlock.index),genesisBlock.calculateProperty(genesisBlock.name), genesisBlock.calculateProperty(genesisBlock.email),genesisBlock.calculateProperty(genesisBlock.polling_booth),
         //   genesisBlock.calculateProperty(genesisBlock.admin_name),genesisBlock.calculateProperty(genesisBlock.previous_hash)]
         [
-          genesisBlock.index,
-          genesisBlock.name,
-          genesisBlock.email,
-          genesisBlock.polling_booth,
-          genesisBlock.admin_name,
-          genesisBlock.timestamp,
-          genesisBlock.hash,
-          genesisBlock.previous_hash,
+          genesisBlockvoter.index,
+          genesisBlockvoter.name,
+          genesisBlockvoter.email,
+          genesisBlockvoter.polling_booth,
+          genesisBlockvoter.admin_name,
+          genesisBlockvoter.timestamp,
+          genesisBlockvoter.hash,
+          genesisBlockvoter.previous_hash,
+        ]
+      );
+    }
+
+    if (genesisDatavoter.rows == 0) {
+      let genesisBlockDatavoter = new BlockDatavoter(
+        "Genesis Block",
+        "Genesis Block",
+        "Genesis Block",
+        "Genesis Block",
+        "Genesis Block",
+        "Genesis Block"
+      );
+      const genesisInsertBlockDatavoter = await pool.query(
+        "INSERT INTO datavoter (nim,index_detail,chosen_candidate,timestamp,hash,previous_hash) VALUES ($1,$2,$3,$4,$5,$6) RETURNING *;",
+        // [genesisBlock.calculateProperty(genesisBlock.index),genesisBlock.calculateProperty(genesisBlock.name), genesisBlock.calculateProperty(genesisBlock.email),genesisBlock.calculateProperty(genesisBlock.polling_booth),
+        //   genesisBlock.calculateProperty(genesisBlock.admin_name),genesisBlock.calculateProperty(genesisBlock.previous_hash)]
+        [
+          genesisBlockDatavoter.nim,
+          genesisBlockDatavoter.index_detail,
+          genesisBlockDatavoter.chosen_candidate,
+          genesisBlockDatavoter.timestamp,
+          genesisBlockDatavoter.hash,
+          genesisBlockDatavoter.previous_hash,
         ]
       );
     }
@@ -73,7 +100,7 @@ app.post("/voter", async (req, res) => {
     const { hash } = req.body;
     const previous_hash = previousHash.rows[previousHash.rows.length - 1].hash;
 
-    let Voter = new Block(
+    let Voter = new Blockvoter(
       index,
       name,
       email,
